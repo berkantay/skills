@@ -180,3 +180,80 @@ cortex connect schedule --every 30m --install
 - **Optional:** Ollama with `nomic-embed-text` for semantic search
 - **Optional:** LLM API key for enrichment (Grok, Gemini, etc.)
 - No Python. No Node. No Docker. No cloud account. Just the binary.
+
+## v1.1/v1.2 Integration Guide (Wiring for OpenClaw Agents)
+
+### When to use `cortex answer` vs `cortex search`
+- **answer** — "What do I know about X?" / "Who is Y?" / synthesis questions → single coherent response with citations
+- **search** — "Find the file where X is mentioned" / debugging / exploring what exists → ranked result list
+
+### Source Boost (config.yaml)
+Add to `~/.cortex/config.yaml`:
+```yaml
+search:
+  source_boost:
+    - prefix: "memory/"
+      weight: 1.5
+    - prefix: "file:MEMORY"
+      weight: 1.6
+    - prefix: "github"
+      weight: 1.3
+    - prefix: "session:"
+      weight: 0.9
+```
+Higher weight = more trusted. Daily notes and core files rank above auto-imported sessions.
+
+### Search Intent
+Use `--intent` when you know where the answer lives:
+- `--intent memory` — personal decisions, preferences, people
+- `--intent connector` — code, PRs, emails, external data
+- `--intent import` — imported files and documents
+- No flag = search everything (default, good for discovery)
+
+### Lifecycle Runner Schedule
+```bash
+# Nightly dry-run + apply (launchd or cron)
+cortex lifecycle run --dry-run > /tmp/lifecycle-plan.log 2>&1
+# If anything found, apply:
+cortex lifecycle run
+```
+Recommended: 3:30 AM daily. First week: dry-run only, review logs.
+
+### Policy Presets
+**Fresh agent (< 500 facts):**
+```yaml
+policies:
+  reinforce_promote:
+    min_reinforcements: 3
+    min_sources: 2
+  decay_retire:
+    inactive_days: 90
+    confidence_below: 0.25
+  conflict_supersede:
+    min_confidence_delta: 0.20
+```
+
+**Mature agent (2000+ facts):**
+```yaml
+policies:
+  reinforce_promote:
+    min_reinforcements: 5
+    min_sources: 3
+  decay_retire:
+    inactive_days: 45
+    confidence_below: 0.35
+  conflict_supersede:
+    min_confidence_delta: 0.10
+```
+
+### Post-Import Hygiene
+After any bulk import, run:
+```bash
+cortex cleanup --dedup-facts    # Remove near-duplicates
+cortex conflicts --auto-resolve  # Resolve contradictions
+```
+
+### Recommended OpenClaw Search Chain (Updated)
+```
+memory_search → cortex answer (synthesis) → cortex search (pointers) → QMD → ripgrep → web
+```

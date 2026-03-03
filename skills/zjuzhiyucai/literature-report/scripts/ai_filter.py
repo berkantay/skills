@@ -14,18 +14,33 @@ import sys
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from api_config import API_KEY, BASE_URL, MODEL_NAME
+from scripts.config_loader import get_api_config
 
 def call_llm(prompt, max_tokens=500):
     """调用LLM API"""
     
+    # 从配置文件读取API配置
+    try:
+        api_config = get_api_config()
+        api_key = api_config['api_key']
+        base_url = api_config['base_url']
+        model = api_config['model']
+    except Exception as e:
+        print(f"❌ API配置加载失败: {e}")
+        return None
+    
+    # 检查API Key是否已配置
+    if api_key == "YOUR_API_KEY_HERE":
+        print("❌ 请先在config.yaml中配置API Key")
+        return None
+    
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     
     data = {
-        "model": MODEL_NAME,
+        "model": model,
         "messages": [
             {"role": "user", "content": prompt}
         ],
@@ -35,7 +50,7 @@ def call_llm(prompt, max_tokens=500):
     
     try:
         response = requests.post(
-            f"{BASE_URL}/chat/completions",
+            f"{base_url}/chat/completions",
             headers=headers,
             json=data,
             timeout=60

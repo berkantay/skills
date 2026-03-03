@@ -1,0 +1,11 @@
+{
+  "owner": "phlegonlabs",
+  "slug": "bn-square-skill",
+  "displayName": "Binance Square Skill",
+  "latest": {
+    "version": "0.2.0",
+    "publishedAt": 1772435476238,
+    "commit": null
+  },
+  "history": []
+}

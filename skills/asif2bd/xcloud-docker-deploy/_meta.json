@@ -1,0 +1,11 @@
+{
+  "owner": "asif2bd",
+  "slug": "xcloud-docker-deploy",
+  "displayName": "xCloud Docker Deploy",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772534733949,
+    "commit": null
+  },
+  "history": []
+}

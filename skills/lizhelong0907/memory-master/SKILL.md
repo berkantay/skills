@@ -1,9 +1,9 @@
 ---
 name: memory-master
-version: 1.2.6
-description: "Precision Memory System — Transform your AI agent from forgetful to photographic. Uses date-based indexing + heuristic recall for context-aware memory. Supports optional network learning with user consent. Safe, transparent, and under user control."
+version: 1.2.9
+description: "Local memory and knowledge base system with structured indexing and auto-index. Write to local files only. Network learning is a SEPARATE optional feature — user must explicitly trigger it (say '我去查一下'). Full user control: all files visible, editable, deletable."
 author: 李哲龙
-tags: [memory, recall, indexing, context, optimization, heuristic]
+tags: [memory, recall, indexing, context]
 ---
 
 # 🧠 Memory Master — The Precision Memory System
@@ -38,8 +38,8 @@ A **precision-targeted memory architecture** with optional network learning capa
 | **🔄 Auto Index Sync** | Write once, index updates automatically |
 | **🎯 Zero Token Waste** | Read only what you need, nothing more |
 | **⚡ Heuristic Recall** | Proactively finds relevant memories when context is missing |
-| **🧠 Optional Network Learning** | Learns from web when user explicitly authorizes |
-| **🔒 User Control** | All writes are transparent, user can review anytime |
+| **🧠 Network Learning** | SEPARATE feature — user must EXPLICITLY say "我去查一下" or "let me search the web" to trigger |
+| **🔓 Full Control** | All files visible/editable/deletable. No auto network calls. |
 
 ---
 
@@ -355,9 +355,9 @@ mkdir ~/.openclaw/workspace/memory/knowledge
 
 ## ⚠️ Security & Privacy
 
-- **Local Storage**: All memory and knowledge data stored locally in workspace, never sent to external services
-- **Network Learning**: Only activates when local knowledge is insufficient to solve a problem
-- **Transparency**: All writes visible in workspace files, user can review/edit/delete anytime
+- **Local by Default**: Memory/knowledge writes to local workspace files only
+- **Network Learning is Separate**: Must be explicitly triggered by user saying "我去查一下" or "let me search" — NOT automatic
+- **Full Control**: User can view/edit/delete any file in memory/ at any time
 - **No Secrets**: Do NOT store API keys, passwords, or sensitive data in memory files
 - **User Control**: User explicitly authorizes web searches ("我去查一下", "let me search the web") before any network activity
 

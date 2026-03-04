@@ -101,25 +101,25 @@ for uid in ids:
     prompt = f"""
         An email has just arrived. **Your ONLY possible output** is ONE json object that matches ONE of the following exact formats (no extra text, no markdown):
 
-        {{
+        {
             "action": "add_memory",
             "payload": "MEMORY TO ADD"
-        }}
+        }
 
-        {{
+        {
             "action": "notify_user",
             "payload": "SUMMARY OF WHAT USER NEEDS TO KNOW"
-        }}
+        }
 
-        {{
+        {
             "action": "to_respond",
             "payload": "SITUATION TO RESPOND TO AND INPUTS NEEDED TO RESPOND"
-        }}
+        }
 
         //If none of the above apply, output the following object ONLY
-        {{
+        {
             "action": "none"
-        }}
+        }
 
         Email data:
         Subject: {subject}
@@ -138,7 +138,7 @@ for uid in ids:
         'openclaw', 'agent',
         f'--session-id={session_id}', # Explicitly set session ID
         '--message', prompt,
-        '--thinking', 'off'         # Disable verbose thinking for speed
+        '--thinking', 'low'         # Disable verbose thinking for speed
     ]
 
     llm_response_data = {

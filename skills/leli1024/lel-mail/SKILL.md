@@ -1,6 +1,6 @@
 ---
 name: lel-mail
-description: Send and read email via a combination of python and bash scripts which makes use of the main agent for reasoning and logic
+description: Send and read email via a combination of python and bash scripts which makes use of the main agent for reasoning and logic. This skill enables the agent to write to memory based on contents in the email and to reach out to the user either to notify them of happenings or to request inputs to respond. This skill also contains a python script to read and manage the email queue containing functionality to list pending outgoing emails and delete emails before they can be sent out. Please note that this skill enables the agent to act upon received emails by adding to agent memory and sending responses
 metadata: {"clawdbot":{"emoji":"📧","requires":{"bins":["python3"]}}}
 ---
 
@@ -55,6 +55,19 @@ Set up a simple cron job which runs the following command every 5 minutes with a
 1. Make sure you have the necessary data to send the email from the user, that includes sender, recipient and body, everything else is optional
 2. Run the following command ```~/.openclaw/workspace/skills/lel-mail/scripts/email_send.sh --sender <sender> --recipient <recipient> --subject <subject> --body <body> [--cc ...] [--bcc ...]``` Note: if using BCC/CC note that CC/BCC are comma-separated lists
 
+
+### 3. Manage Outgoing Queue
+Outgoing emails are scheduled to send with a random delay (30-90 seconds). You can list or delete these before they are sent.
+
+**List all queued emails**:
+```bash
+python3 ~/.openclaw/workspace/skills/lel-mail/scripts/manage_queue.py --list
+```
+
+**Delete a specific email by ID**:
+```bash
+python3 ~/.openclaw/workspace/skills/lel-mail/scripts/manage_queue.py --delete <ID>
+```
 
 ## Troubleshooting
 Prompt user to assist when errors occur due to missing/invalid credentials/configuration

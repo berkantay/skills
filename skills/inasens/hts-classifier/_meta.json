@@ -1,0 +1,11 @@
+{
+  "owner": "inasens",
+  "slug": "hts-classifier",
+  "displayName": "HTS Classifier — US Tariff Code & Duty Lookup",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1772665866945,
+    "commit": null
+  },
+  "history": []
+}

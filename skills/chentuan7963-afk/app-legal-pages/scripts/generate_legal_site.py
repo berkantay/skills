@@ -2,13 +2,43 @@
 import argparse
 import datetime as dt
 import html
-import os
 import re
 from pathlib import Path
+from typing import Optional
 
 
-def slug(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+def derive_plus_email(base_email: str, app_name: str, email_tag: Optional[str] = None) -> str:
+    local, domain = base_email.split("@", 1)
+    raw_tag = email_tag if email_tag else app_name
+    tag = re.sub(r"[^a-z0-9]", "", raw_tag.lower())
+    if not tag:
+        raise ValueError("email tag cannot be empty; provide --email-tag or a valid --app-name")
+    return f"{local}+{tag}@{domain}"
+
+
+def has_positive_signal(t: str, keyword: str) -> bool:
+    neg_patterns = [
+        f"no {keyword}",
+        f"without {keyword}",
+        f"not use {keyword}",
+        f"does not use {keyword}",
+        f"do not use {keyword}",
+    ]
+    if any(p in t for p in neg_patterns):
+        return False
+    return keyword in t
+
+
+def detect_posture(text: str):
+    t = text.lower()
+    return {
+        "offline_only": ("offline" in t) or ("on your device" in t) or ("local" in t),
+        "no_cloud": ("no cloud" in t) or ("without cloud" in t) or ("无云" in text),
+        "no_tracking": ("no tracking" in t) or ("无追踪" in text),
+        "no_analytics": ("no analytics" in t) or ("无分析" in text),
+        "no_server": ("no server" in t) or ("无服务器" in text),
+        "mentions_exif": ("exif" in t),
+    }
 
 
 def detect_items(text: str):
@@ -19,7 +49,7 @@ def detect_items(text: str):
         data_types.append("Contact information (such as email)")
     if any(k in t for k in ["device", "model", "os version", "resolution", "identifier", "idfa", "aaid", "android id"]):
         data_types.append("Device and technical information")
-    if any(k in t for k in ["analytics", "event", "usage", "telemetry"]):
+    if has_positive_signal(t, "analytics") or has_positive_signal(t, "telemetry"):
         data_types.append("Usage analytics")
     if any(k in t for k in ["crash", "log", "error report", "sentry"]):
         data_types.append("Crash diagnostics and logs")
@@ -37,18 +67,17 @@ def detect_items(text: str):
         "microphone": "Microphone",
         "location": "Location",
         "contacts": "Contacts",
-        "tracking": "Tracking",
         "notification": "Notifications",
     }
     for k, v in mapping.items():
-        if k in t and v not in permissions:
+        if has_positive_signal(t, k) and v not in permissions:
             permissions.append(v)
 
     features = []
     for line in text.splitlines():
         if line.strip().startswith(("-", "*")):
             val = line.strip().lstrip("-* ").strip()
-            if 3 <= len(val) <= 120:
+            if 3 <= len(val) <= 120 and val.isascii() and re.search(r"[A-Za-z]", val):
                 features.append(val)
     features = features[:10]
 
@@ -71,10 +100,30 @@ def html_page(title: str, body: str):
 """
 
 
-def build_privacy(app_name, company, email, effective_date, jurisdiction, data_types, permissions, features):
-    dt_items = "".join(f"<li>{html.escape(x)}</li>" for x in data_types) or "<li>Data described in your in-app interactions.</li>"
+def build_privacy(app_name, company, email, effective_date, jurisdiction, data_types, permissions, features, posture):
+    dt_items = "".join(f"<li>{html.escape(x)}</li>" for x in data_types) or "<li>Data required to perform your requested in-app actions.</li>"
+    if posture.get("mentions_exif"):
+        dt_items += "<li>Photo metadata (for example EXIF, including location data if present) is processed on-device only.</li>"
+
     perm_block = f"<h2>Permissions</h2><ul>{''.join(f'<li>{html.escape(x)}</li>' for x in permissions)}</ul>" if permissions else ""
     feat_items = "".join(f"<li>{html.escape(x)}</li>" for x in features) or "<li>Core app features described in product documentation.</li>"
+
+    sharing_text = "We do not sell personal information."
+    if posture.get("offline_only") or posture.get("no_cloud") or posture.get("no_server"):
+        sharing_text += " We do not upload your file content to our servers."
+    if posture.get("no_tracking"):
+        sharing_text += " We do not track users across apps or websites."
+    if posture.get("no_analytics"):
+        sharing_text += " We do not use analytics for user behavior profiling."
+
+    retention_text = "Data is retained only as needed for app functionality and according to your local device state."
+    if posture.get("offline_only") or posture.get("no_server"):
+        retention_text = "Your files and processing outputs remain on your device unless you explicitly export/share them."
+
+    use_items = [
+        "Provide app functionality and process user-requested actions.",
+        "Maintain app reliability and security.",
+    ]
 
     return f"""
 <h1>{html.escape(app_name)} Privacy Policy</h1>
@@ -85,11 +134,7 @@ def build_privacy(app_name, company, email, effective_date, jurisdiction, data_t
 <ul>{dt_items}</ul>
 
 <h2>How We Use Information</h2>
-<ul>
-  <li>Provide app functionality and process user-requested actions.</li>
-  <li>Maintain app reliability and security.</li>
-  <li>Improve product quality based on diagnostics and usage trends.</li>
-</ul>
+<ul>{''.join(f'<li>{html.escape(x)}</li>' for x in use_items)}</ul>
 
 {perm_block}
 
@@ -97,10 +142,10 @@ def build_privacy(app_name, company, email, effective_date, jurisdiction, data_t
 <ul>{feat_items}</ul>
 
 <h2>Data Sharing</h2>
-<p>We do not sell personal information. We may share data with service providers strictly for infrastructure, analytics, or support purposes where applicable.</p>
+<p>{sharing_text}</p>
 
 <h2>Data Retention</h2>
-<p>Data is retained only as long as needed for the purposes described above, unless a longer period is required by law.</p>
+<p>{retention_text}</p>
 
 <h2>Your Rights</h2>
 <p>You may request access, correction, or deletion of your information by contacting <a href=\"mailto:{html.escape(email)}\">{html.escape(email)}</a>.</p>
@@ -108,21 +153,21 @@ def build_privacy(app_name, company, email, effective_date, jurisdiction, data_t
 <h2>Children's Privacy</h2>
 <p>{html.escape(app_name)} is not directed to children under 13, and we do not knowingly collect personal data from children under 13.</p>
 
-<h2>International Transfers</h2>
-<p>Your information may be processed in regions where our infrastructure or service providers operate, subject to applicable safeguards.</p>
-
 <h2>Changes to This Policy</h2>
 <p>We may update this policy periodically. Material updates will be reflected by a new effective date.</p>
 
 <h2>Contact</h2>
 <p>Email: <a href=\"mailto:{html.escape(email)}\">{html.escape(email)}</a></p>
-<p><em>Legal note: review this draft for jurisdiction-specific requirements in {html.escape(jurisdiction)}. Placeholder: TODO_LEGAL_REVIEW.</em></p>
 
 <p><a href=\"index.html\">Back to Legal Home</a></p>
 """
 
 
 def build_terms(app_name, company, email, effective_date, jurisdiction):
+    governing_law_block = ""
+    if jurisdiction:
+        governing_law_block = f"<h2>Governing Law</h2><p>These Terms are governed by the laws of {html.escape(jurisdiction)}.</p>"
+
     return f"""
 <h1>{html.escape(app_name)} Terms of Service</h1>
 <p><strong>Effective date:</strong> {html.escape(effective_date)}</p>
@@ -147,12 +192,10 @@ def build_terms(app_name, company, email, effective_date, jurisdiction):
 <h2>Termination</h2>
 <p>We may suspend or terminate access if these Terms are violated.</p>
 
-<h2>Governing Law</h2>
-<p>These Terms are governed by the laws of {html.escape(jurisdiction)}.</p>
+{governing_law_block}
 
 <h2>Contact</h2>
 <p>Email: <a href=\"mailto:{html.escape(email)}\">{html.escape(email)}</a></p>
-<p><em>Legal note: confirm enforceability language for your region. Placeholder: TODO_LEGAL_REVIEW.</em></p>
 
 <p><a href=\"index.html\">Back to Legal Home</a></p>
 """
@@ -192,23 +235,31 @@ def main():
     parser.add_argument("--out", required=True)
     parser.add_argument("--app-name", required=True)
     parser.add_argument("--company", required=True)
-    parser.add_argument("--email", required=True)
+    parser.add_argument("--email", help="Final contact email (overrides --base-email)")
+    parser.add_argument("--base-email", help="Base Gmail/email used to derive plus-address, e.g. user@gmail.com")
+    parser.add_argument("--email-tag", help="Optional tag for plus-address. Example: quillnest => user+quillnest@gmail.com")
     parser.add_argument("--effective-date", default=str(dt.date.today()))
-    parser.add_argument("--jurisdiction", default="TODO_JURISDICTION")
+    parser.add_argument("--jurisdiction", default="", help="Optional governing-law region. Omit unless explicitly provided.")
     args = parser.parse_args()
 
+    if not args.email and not args.base_email:
+        raise SystemExit("Provide --email or --base-email")
+
+    final_email = args.email or derive_plus_email(args.base_email, args.app_name, args.email_tag)
+
     text = Path(args.input).read_text(encoding="utf-8")
+    posture = detect_posture(text)
     data_types, permissions, features = detect_items(text)
 
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)
 
     (outdir / "privacy.html").write_text(
-        html_page(f"{args.app_name} Privacy Policy", build_privacy(args.app_name, args.company, args.email, args.effective_date, args.jurisdiction, data_types, permissions, features)),
+        html_page(f"{args.app_name} Privacy Policy", build_privacy(args.app_name, args.company, final_email, args.effective_date, args.jurisdiction, data_types, permissions, features, posture)),
         encoding="utf-8",
     )
     (outdir / "terms.html").write_text(
-        html_page(f"{args.app_name} Terms", build_terms(args.app_name, args.company, args.email, args.effective_date, args.jurisdiction)),
+        html_page(f"{args.app_name} Terms", build_terms(args.app_name, args.company, final_email, args.effective_date, args.jurisdiction)),
         encoding="utf-8",
     )
     (outdir / "index.html").write_text(

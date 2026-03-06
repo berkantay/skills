@@ -191,9 +191,15 @@ async function resolveJanusOffering(
     );
   }
 
-  // Prefer an agent named exactly "x402janus"
-  const janusAgent =
-    agents.find((a) => a.name.toLowerCase() === "x402janus") ?? agents[0];
+  // Require an exact x402janus agent match.
+  // Do NOT fall back to arbitrary search results (spoofing risk).
+  const janusAgent = agents.find((a) => a.name.toLowerCase() === "x402janus");
+  if (!janusAgent) {
+    const candidates = agents.map((a) => a.name).join(", ");
+    throw new Error(
+      `Exact agent "x402janus" not found in ACP search results. Candidates: ${candidates}`
+    );
+  }
 
   const offerings = janusAgent.jobOfferings ?? [];
   if (offerings.length === 0) {

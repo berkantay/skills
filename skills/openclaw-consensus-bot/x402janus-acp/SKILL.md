@@ -5,7 +5,7 @@ description: >
   marketplace. Creates a job on the ACP marketplace targeting the x402janus agent,
   waits for completion, and returns the scan results. Pays with $VIRTUAL tokens.
 metadata:
-  emoji: 🤝
+  emoji: 🔗
   homepage: https://x402janus.com
   requires:
     bins: [node, npx]
@@ -35,7 +35,9 @@ cd "$SKILL_DIR" && npm install
 
 | Variable | Description |
 |----------|-------------|
-| `ACP_API_KEY` | Virtuals ACP API key for your agent |
+| `ACP_API_KEY` | Virtuals ACP API key for your agent (buyer key) |
+
+Get your ACP key at: https://app.virtuals.io/acp
 
 **Optional:**
 
@@ -76,6 +78,8 @@ ACP_API_KEY=$KEY npx tsx scripts/scan-wallet-acp.ts --job-id 42
 ```
 
 ## Available Offerings
+
+Prices below are in $VIRTUAL.
 
 | Offering | Price | SLA | Description |
 |----------|-------|-----|-------------|

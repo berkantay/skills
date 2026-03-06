@@ -1,11 +1,11 @@
 {
   "name": "x402janus-acp",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "ACP buyer skill — hire x402janus for wallet security scans via the Virtuals ACP marketplace",
   "type": "module",
   "scripts": {
-    "list": "tsx scripts/list-offerings.ts",
-    "scan": "tsx scripts/scan-wallet-acp.ts"
+    "list": "npx tsx scripts/list-offerings.ts",
+    "scan": "npx tsx scripts/scan-wallet-acp.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

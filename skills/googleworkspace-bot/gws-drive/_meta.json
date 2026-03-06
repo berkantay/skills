@@ -3,9 +3,15 @@
   "slug": "gws-drive",
   "displayName": "Gws Drive",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772665502736,
-    "commit": "https://github.com/openclaw/skills/commit/5898c4a2ac3ba59225359aa5115c55a7bd6b9403"
+    "version": "1.0.1",
+    "publishedAt": 1772769144507,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772665502736,
+      "commit": "https://github.com/openclaw/skills/commit/5898c4a2ac3ba59225359aa5115c55a7bd6b9403"
+    }
+  ]
 }

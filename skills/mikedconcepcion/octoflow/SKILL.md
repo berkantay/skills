@@ -6,12 +6,12 @@ description: >
   process images/audio/video, train ML models, or generate code from natural language.
   OctoFlow turns English task descriptions into GPU programs via Vulkan.
   Also runs as an MCP server (`octoflow mcp-serve`) with 7 structured tools.
-  No Python, no CUDA, no dependencies — single 3.2 MB binary.
-  57 stdlib algorithm modules (sort, search, graph, matrix, stats, DSP, etc.).
-  18 multimedia modules (audio DSP, image transforms, video timeline).
+  No Python, no CUDA, no dependencies — single 4.5 MB binary.
+  445 stdlib modules across 28 domains (sort, search, graph, matrix, stats, DSP, ML, etc.).
+  150 GPU compute kernels. Loom Engine GPU VM with layer-streaming LLM inference.
   Use for: "sort a million numbers", "cluster this CSV", "blur this image",
   "plot my data", "calculate statistics", "run regression", "process audio".
-version: 1.4.0
+version: 1.5.8
 metadata:
   openclaw:
     emoji: "\U0001F419"
@@ -21,13 +21,14 @@ metadata:
     install:
       - id: github-release
         kind: download
-        url: https://github.com/octoflow-lang/octoflow/releases/latest
+        url: https://github.com/octoflow-lang/octoflow/releases/download/v1.5.8/
         bins: [octoflow]
-        label: "Download OctoFlow from GitHub Releases (3.2 MB, zero dependencies)"
+        label: "Download OctoFlow v1.5.8 from GitHub Releases (4.5 MB, zero dependencies)"
     os: [linux, win32, darwin]
     always: false
 tags: [gpu, vulkan, compute, data-analysis, image-processing,
-       machine-learning, programming-language, natural-language]
+       machine-learning, programming-language, natural-language,
+       loom-engine, llm-inference]
 author: octoflow-lang
 repository: https://github.com/octoflow-lang/octoflow
 homepage: https://octoflow-lang.github.io/octoflow/
@@ -53,6 +54,7 @@ GPU-native programming language. Describe tasks in English, run them on any GPU 
 - "calculate the Sharpe ratio" / "compute correlation"
 - "find primes" / "generate random numbers on GPU"
 - "run linear regression on my dataset"
+- "run a LLM on my GPU" / "inference on my GPU"
 
 **Do NOT use this skill when:**
 - The user wants Python/JavaScript/Rust code (use the appropriate language tool)
@@ -159,11 +161,12 @@ octoflow chat "load data.csv, compute Pearson correlation between col1 and col2"
 
 | Feature | Detail |
 |---------|--------|
-| Builtins | 207 built-in functions |
-| Stdlib | 303 modules across 20 domains |
-| GPU kernels | 113 Vulkan compute shaders |
+| Builtins | 210+ built-in functions |
+| Stdlib | 445 modules across 28 domains |
+| GPU kernels | 150 Vulkan compute shaders |
+| GPU VM | Loom Engine — 5 SSBOs, indirect dispatch, layer streaming |
 | GPU support | Any Vulkan GPU (NVIDIA, AMD, Intel) |
-| Binary size | 3.2 MB, zero dependencies |
+| Binary size | 4.5 MB, zero dependencies |
 | Chat mode | English to code with auto-fix loop (max 3 retries) |
 | Errors | 69 structured error codes with auto-fix suggestions |
 | MCP Server | 7 structured tools via JSON-RPC 2.0 |
@@ -187,11 +190,11 @@ Contents: which stdlib modules you use frequently and corrections from previous 
 
 | Platform | File | SHA-256 |
 |----------|------|---------|
-| Windows x64 | [octoflow-v1.4.0-x86_64-windows.zip](https://github.com/octoflow-lang/octoflow/releases/download/v1.4.0/octoflow-v1.4.0-x86_64-windows.zip) | See SHA256SUMS.txt |
-| Linux x64 | [octoflow-v1.4.0-x86_64-linux.tar.gz](https://github.com/octoflow-lang/octoflow/releases/download/v1.4.0/octoflow-v1.4.0-x86_64-linux.tar.gz) | See SHA256SUMS.txt |
-| macOS (Apple Silicon) | [octoflow-v1.4.0-aarch64-macos.tar.gz](https://github.com/octoflow-lang/octoflow/releases/download/v1.4.0/octoflow-v1.4.0-aarch64-macos.tar.gz) | See SHA256SUMS.txt |
+| Windows x64 | [octoflow-v1.5.8-x86_64-windows.zip](https://github.com/octoflow-lang/octoflow/releases/download/v1.5.8/octoflow-v1.5.8-x86_64-windows.zip) | `2b26049565a2bfd2b1c4a1c103f2a64cd864dd14da619bd7be750ad3c6b356f2` |
+| Linux x64 | [octoflow-v1.5.8-x86_64-linux.tar.gz](https://github.com/octoflow-lang/octoflow/releases/download/v1.5.8/octoflow-v1.5.8-x86_64-linux.tar.gz) | `d7306fc1f5a9a733a66ae3a4d5f3b145670efa7a079302935d867b4b75551845` |
+| macOS (Apple Silicon) | [octoflow-v1.5.8-aarch64-macos.tar.gz](https://github.com/octoflow-lang/octoflow/releases/download/v1.5.8/octoflow-v1.5.8-aarch64-macos.tar.gz) | `33808c330dc5f08eb0008b52ecfb5f0ea532fb71b1c6996075c09b33dc5d8fd2` |
 
-Verify: `sha256sum octoflow-v1.4.0-*` (full checksums in [SHA256SUMS.txt](https://github.com/octoflow-lang/octoflow/releases/download/v1.4.0/SHA256SUMS.txt)).
+Verify: `sha256sum octoflow-v1.5.8-*` (full checksums in [SHA256SUMS.txt](https://github.com/octoflow-lang/octoflow/releases/download/v1.5.8/SHA256SUMS.txt)).
 
 Unzip/extract, add to PATH. No installer needed.
 

@@ -1,0 +1,11 @@
+{
+  "owner": "nissan",
+  "slug": "tweet-pipeline",
+  "displayName": "Tweet Pipeline",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772829609111,
+    "commit": null
+  },
+  "history": []
+}

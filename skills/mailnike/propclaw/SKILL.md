@@ -7,11 +7,11 @@ homepage: https://www.propclaw.ai
 source: https://github.com/avansaber/propclaw
 tier: 4
 category: property-management
-requires: [erpclaw-setup, erpclaw-gl, erpclaw-selling, erpclaw-buying, erpclaw-billing, erpclaw-payments]
+requires: [erpclaw]
 database: ~/.openclaw/erpclaw/data.sqlite
 user-invocable: true
 tags: [propclaw, property-management, real-estate, landlord, leasing, tenant, rent, maintenance, work-order, trust-accounting, security-deposit, 1099, fcra, inspection]
-metadata: {"openclaw":{"type":"executable","install":{"post":"python3 scripts/db_query.py --action status"},"requires":{"bins":["python3"],"env":[],"optionalEnv":["ERPCLAW_DB_PATH"]},"os":["darwin","linux"]}}
+metadata: {"openclaw":{"type":"executable","install":{"post":"python3 init_db.py && python3 scripts/db_query.py --action status"},"requires":{"bins":["python3"],"env":[],"optionalEnv":["ERPCLAW_DB_PATH"]},"os":["darwin","linux"]}}
 ---
 
 # propclaw
@@ -25,8 +25,8 @@ All financial transactions post to the ERPClaw General Ledger with full double-e
 ## Security Model
 
 - **Local-only**: All data stored in `~/.openclaw/erpclaw/data.sqlite`
-- **Fully offline**: No external API calls, no telemetry, no cloud dependencies. Zero network calls in any code path.
-- **No credentials required**: Uses erpclaw_lib shared library (installed by erpclaw-setup)
+- **Fully offline**: No external API calls, no telemetry, no cloud dependencies
+- **No credentials required**: Uses erpclaw_lib shared library (installed by erpclaw)
 - **SQL injection safe**: All queries use parameterized statements
 - **FCRA compliance tracking**: Stores screening metadata (type, consent date, result) locally for audit trails. Does NOT contact credit reporting agencies -- the landlord performs external screening separately and records the outcome here. Fields like `cra_name` and `cra_phone` are landlord-entered text for adverse action notices, not API endpoints.
 - **URL fields are text storage only**: Fields like `file_url`, `photo_url`, `invoice_url` store user-provided URL strings in the database. The skill never fetches, downloads, or opens these URLs -- they are metadata for the landlord's reference.
@@ -42,7 +42,7 @@ owner statement, 1099, landlord, property management, move-in, move-out, late fe
 
 If the database does not exist or you see "no such table" errors:
 ```
-python3 {baseDir}/../erpclaw-setup/scripts/db_query.py --action initialize-database
+python3 {baseDir}/../erpclaw/scripts/db_query.py --action initialize-database
 python3 {baseDir}/scripts/db_query.py --action status
 ```
 
@@ -142,7 +142,7 @@ For all actions: `python3 {baseDir}/scripts/db_query.py --action <action> [flags
 | `assign-vendor` | `--work-order-id --supplier-id` | `--estimated-arrival` |
 | `update-vendor-assignment` | `--assignment-id` | `--status --actual-arrival` |
 | `complete-work-order` | `--work-order-id --actual-cost` | `--purchase-invoice-id --billable-to-tenant` |
-| `add-work-order-item` | `--work-order-id --description --item-type --rate` | `--quantity` |
+| `add-work-order-item` | `--work-order-id --item-description --item-type --rate` | `--quantity` |
 | `list-work-order-items` | `--work-order-id` | |
 | `add-inspection` | `--company-id --property-id --inspection-type --inspection-date` | `--unit-id --lease-id --inspector-name` |
 | `get-inspection` | `--inspection-id` | |
@@ -187,8 +187,8 @@ For all actions: `python3 {baseDir}/scripts/db_query.py --action <action> [flags
 
 ### Key Concepts
 
-- **Tenant = Customer**: Tenants are ERPClaw customers. Use erpclaw-selling for invoicing.
-- **Vendor = Supplier**: Maintenance vendors are ERPClaw suppliers. Use erpclaw-buying for POs.
+- **Tenant = Customer**: Tenants are ERPClaw customers. Use the selling domain in erpclaw for invoicing.
+- **Vendor = Supplier**: Maintenance vendors are ERPClaw suppliers. Use the buying domain in erpclaw for POs.
 - **Trust Accounts**: GL accounts with `account_type = 'trust'`. Security deposits held here.
 - **FCRA Compliance**: Never store raw credit data. Adverse action notice required on denial.
 - **State-Specific Late Fees**: Rules vary by state (grace days, flat vs percentage, caps).
@@ -198,8 +198,8 @@ For all actions: `python3 {baseDir}/scripts/db_query.py --action <action> [flags
 
 **Tables owned (23):** propclaw_property, propclaw_unit, propclaw_amenity, propclaw_property_photo, propclaw_lease, propclaw_rent_schedule, propclaw_lease_charge, propclaw_late_fee_rule, propclaw_lease_renewal, propclaw_application, propclaw_screening_request, propclaw_tenant_document, propclaw_adverse_action, propclaw_work_order, propclaw_work_order_item, propclaw_inspection, propclaw_inspection_item, propclaw_vendor_assignment, propclaw_trust_account, propclaw_owner_statement, propclaw_security_deposit, propclaw_deposit_deduction, propclaw_tax_1099
 
-**Script:** `scripts/db_query.py` routes to 5 domain modules: properties.py, leases.py, tenants.py, maintenance.py, accounting.py
+**Script:** `scripts/db_query.py` -- all 66 actions routed through this single entry point.
 
 **Data conventions:** Money = TEXT (Python Decimal), IDs = TEXT (UUID4), Dates = TEXT (ISO 8601), Booleans = INTEGER (0/1)
 
-**Shared library:** erpclaw_lib (get_connection, ok/err, row_to_dict, get_next_name, audit, to_decimal, round_currency, check_required_tables)
+**Shared library:** Uses erpclaw_lib shared library (installed by erpclaw).

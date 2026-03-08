@@ -27,8 +27,8 @@ except ImportError:
     import json as _json
     print(_json.dumps({
         "status": "error",
-        "error": "ERPClaw foundation not installed. Install erpclaw-setup first: clawhub install erpclaw-setup",
-        "suggestion": "clawhub install erpclaw-setup"
+        "error": "ERPClaw foundation not installed. Install erpclaw first: clawhub install erpclaw",
+        "suggestion": "clawhub install erpclaw"
     }))
     sys.exit(1)
 

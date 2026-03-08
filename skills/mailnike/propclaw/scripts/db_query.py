@@ -23,8 +23,8 @@ except ImportError:
     import json as _json
     print(_json.dumps({
         "status": "error",
-        "error": "ERPClaw foundation not installed. Install erpclaw-setup first: clawhub install erpclaw-setup",
-        "suggestion": "clawhub install erpclaw-setup"
+        "error": "ERPClaw foundation not installed. Install erpclaw first: clawhub install erpclaw",
+        "suggestion": "clawhub install erpclaw"
     }))
     sys.exit(1)
 
@@ -36,6 +36,16 @@ from leases import ACTIONS as LEASE_ACTIONS
 from tenants import ACTIONS as TENANT_ACTIONS
 from maintenance import ACTIONS as MAINT_ACTIONS
 from accounting import ACTIONS as ACCT_ACTIONS
+
+# Register propclaw naming prefixes (vertical-specific entity types)
+from erpclaw_lib.naming import register_prefix
+register_prefix("propclaw_property", "PROP-")
+register_prefix("propclaw_unit", "PUNIT-")
+register_prefix("propclaw_application", "PAPP-")
+register_prefix("propclaw_lease", "PLSE-")
+register_prefix("propclaw_work_order", "PWO-")
+register_prefix("propclaw_inspection", "PINSP-")
+register_prefix("propclaw_owner_statement", "PSTMT-")
 
 # ---------------------------------------------------------------------------
 # Merge all domain actions into one router
@@ -208,7 +218,7 @@ def main():
 
     _dep = check_required_tables(conn, REQUIRED_TABLES)
     if _dep:
-        _dep["suggestion"] = "clawhub install erpclaw-setup && clawhub install propclaw"
+        _dep["suggestion"] = "clawhub install erpclaw && clawhub install propclaw"
         print(json.dumps(_dep, indent=2))
         conn.close()
         sys.exit(1)

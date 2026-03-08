@@ -1,103 +1,132 @@
 #!/usr/bin/env bash
 # =============================================================================
-# setup.sh — Astrill Watchdog one-time setup
+# setup.sh — Setup for astrill-watchdog
+# Version: 2.0.0
 #
-# Run this once after installing the skill to enable auto-start on login.
-# Creates a systemd user service that starts the watchdog automatically
-# when you log in and restarts it if it ever crashes.
+# Installs the Astrill StealthVPN watchdog as a systemd user service.
+# No sudo required.
 #
-# Usage:
-#   bash setup.sh
+# Usage: bash setup.sh
 # =============================================================================
 
 set -euo pipefail
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WATCHDOG="$SKILL_DIR/astrill-watchdog.sh"
-SERVICE_DIR="$HOME/.config/systemd/user"
-SERVICE_FILE="$SERVICE_DIR/astrill-watchdog.service"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WATCHDOG_SCRIPT="$SCRIPT_DIR/astrill-watchdog.sh"
+INSTALL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/astrill-watchdog"
+INSTALL_BIN="$INSTALL_DIR/astrill-watchdog.sh"
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/astrill-watchdog"
+SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+UNIT_FILE="$SYSTEMD_DIR/astrill-watchdog.service"
+ASTRILL_BIN="/usr/local/Astrill/astrill"
 
-echo "=== Astrill Watchdog Setup ==="
+GREEN="\033[0;32m"; YELLOW="\033[1;33m"; RED="\033[0;31m"; RESET="\033[0m"
+ok()   { echo -e "${GREEN}✓${RESET}  $*"; }
+warn() { echo -e "${YELLOW}⚠${RESET}  $*"; }
+fail() { echo -e "${RED}✗${RESET}  $*"; exit 1; }
+
+echo ""
+echo "╔══════════════════════════════════════════════════╗"
+echo "║  astrill-watchdog 2.0.0 — Setup                  ║"
+echo "╚══════════════════════════════════════════════════╝"
 echo ""
 
 # ── Preflight checks ──────────────────────────────────────────────────────────
 
-if [[ ! -x "$WATCHDOG" ]]; then
-    chmod +x "$WATCHDOG"
-    echo "✓ Made watchdog script executable"
-fi
+echo "── Checking prerequisites…"
 
-if [[ ! -f "/usr/local/Astrill/astrill" ]]; then
-    echo "✗ Astrill not found at /usr/local/Astrill/astrill"
-    echo "  Is the Astrill deb package installed?"
-    exit 1
-fi
-echo "✓ Astrill found at /usr/local/Astrill/astrill"
+[[ -f "$WATCHDOG_SCRIPT" ]] \
+    || fail "astrill-watchdog.sh not found in ${SCRIPT_DIR}."
+ok "astrill-watchdog.sh found."
 
-# ── Stop existing service if running ─────────────────────────────────────────
+[[ -x "$ASTRILL_BIN" ]] \
+    || fail "Astrill binary not found: ${ASTRILL_BIN}. Is Astrill installed?"
+ok "Astrill binary found."
 
-if systemctl --user is-active astrill-watchdog &>/dev/null; then
-    echo "  Stopping existing watchdog service…"
-    systemctl --user stop astrill-watchdog || true
-fi
+for tool in ping ip pgrep pkill setsid; do
+    command -v "$tool" &>/dev/null || fail "Required tool missing: ${tool}"
+done
+ok "Required tools present (ping, ip, pgrep, pkill, setsid)."
 
-# Also kill any manually started instances
-pkill -f "astrill-watchdog.sh _loop" 2>/dev/null || true
-rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/astrill-watchdog/watchdog.pid" \
-       "${XDG_STATE_HOME:-$HOME/.local/state}/astrill-watchdog/watchdog.lock"
+command -v systemctl &>/dev/null \
+    || fail "systemctl not found. Systemd required."
 
-# ── Write systemd service ─────────────────────────────────────────────────────
+systemctl --user status &>/dev/null 2>&1 \
+    || warn "systemd user session may not be fully initialised. Continuing anyway."
 
-mkdir -p "$SERVICE_DIR"
+# ── Install watchdog script ───────────────────────────────────────────────────
 
-cat > "$SERVICE_FILE" << EOF
+echo ""
+echo "── Installing watchdog script…"
+
+mkdir -p "$INSTALL_DIR"
+chmod 700 "$INSTALL_DIR"
+cp "$WATCHDOG_SCRIPT" "$INSTALL_BIN"
+chmod 700 "$INSTALL_BIN"
+ok "Installed: ${INSTALL_BIN}"
+
+# ── Log directory ─────────────────────────────────────────────────────────────
+
+mkdir -p "$LOG_DIR"
+chmod 700 "$LOG_DIR"
+ok "Log directory: ${LOG_DIR}"
+
+# ── Systemd user unit ─────────────────────────────────────────────────────────
+
+echo ""
+echo "── Writing systemd user unit…"
+
+mkdir -p "$SYSTEMD_DIR"
+
+cat > "$UNIT_FILE" << EOF
 [Unit]
 Description=Astrill VPN Watchdog
-After=network.target default.target
+After=graphical-session.target network-online.target
+Wants=graphical-session.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash ${WATCHDOG} _loop
-ExecStop=/bin/bash ${WATCHDOG} stop
+ExecStart=${INSTALL_BIN} _loop
+ExecStop=${INSTALL_BIN} stop
 Restart=on-failure
 RestartSec=15
+StandardOutput=append:${LOG_DIR}/watchdog.log
+StandardError=append:${LOG_DIR}/watchdog.log
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 EOF
 
-echo "✓ Systemd service written to $SERVICE_FILE"
-
-# ── Enable and start ──────────────────────────────────────────────────────────
+ok "Unit written: ${UNIT_FILE}"
 
 systemctl --user daemon-reload
-systemctl --user enable astrill-watchdog
-systemctl --user start astrill-watchdog
+ok "systemd daemon reloaded."
 
-echo "✓ Service enabled and started"
+systemctl --user enable astrill-watchdog.service
+ok "Service enabled (starts on login)."
+
+# ── Start watchdog ────────────────────────────────────────────────────────────
+
 echo ""
+echo "── Starting watchdog…"
 
-# ── Verify ────────────────────────────────────────────────────────────────────
-
+systemctl --user restart astrill-watchdog.service
 sleep 2
-if systemctl --user is-active astrill-watchdog &>/dev/null; then
-    echo "✓ Watchdog is running"
-    echo ""
-    systemctl --user status astrill-watchdog --no-pager
-    echo ""
-    echo "=== Setup complete! ==="
-    echo ""
-    echo "The watchdog will now:"
-    echo "  • Start automatically when you log in"
-    echo "  • Restart automatically if it crashes"
-    echo "  • Check your VPN every 30 seconds"
-    echo ""
-    echo "Useful commands:"
-    echo "  systemctl --user status astrill-watchdog   # service status"
-    echo "  bash $WATCHDOG status                      # full VPN diagnostics"
-    echo "  tail -f "${XDG_STATE_HOME:-$HOME/.local/state}/astrill-watchdog/watchdog.log"          # live log"
+
+if systemctl --user is-active --quiet astrill-watchdog.service; then
+    ok "Watchdog running."
 else
-    echo "✗ Service failed to start. Check logs:"
-    echo "  journalctl --user -u astrill-watchdog -n 30 --no-pager"
-    exit 1
+    warn "Service may not have started cleanly. Check:"
+    warn "  journalctl --user -u astrill-watchdog.service -n 20"
 fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+
+echo ""
+echo "╔══════════════════════════════════════════════════╗"
+echo "║  Setup complete                                   ║"
+echo "╚══════════════════════════════════════════════════╝"
+echo ""
+echo "  Status:  ${INSTALL_BIN} status"
+echo "  Log:     ${LOG_DIR}/watchdog.log"
+echo ""

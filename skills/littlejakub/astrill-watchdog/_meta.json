@@ -3,11 +3,16 @@
   "slug": "astrill-watchdog",
   "displayName": "Astrill Watchdog",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1772451628015,
-    "commit": "https://github.com/openclaw/skills/commit/ebd5c444329911bb8f93b686db88e2c1ddbdbf65"
+    "version": "2.0.0",
+    "publishedAt": 1772891954007,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1772451628015,
+      "commit": "https://github.com/openclaw/skills/commit/ebd5c444329911bb8f93b686db88e2c1ddbdbf65"
+    },
     {
       "version": "1.0.7",
       "publishedAt": 1772372413256,

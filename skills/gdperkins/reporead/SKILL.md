@@ -1,20 +1,48 @@
 ---
 name: reporead
-version: 1.0.0
+version: 1.1.0
 description: Analyze GitHub repositories using RepoRead AI. Use when the user asks to "analyze a repo", "generate docs", "security audit a repo", "create a README", or wants AI-powered repository analysis. Supports MCP server integration and REST API.
+metadata:
+  clawdis:
+    primaryEnv: REPOREAD_API_KEY
+    homepage: https://www.reporead.com
+    requires:
+      env:
+        - REPOREAD_API_KEY
+      anyBins:
+        - curl
+    config:
+      requiredEnv:
+        - REPOREAD_API_KEY
 ---
 
 # RepoRead — AI Repository Analysis
 
 RepoRead is an AI-powered platform that analyzes GitHub repositories and generates documentation, technical architecture breakdowns, security audits, visual diagrams, and LLM-optimized summaries. Connect via the MCP server (preferred) or REST API to analyze any public GitHub repository.
 
-## Setup
+## Quick Start
 
 ### 1. Get an API Key
 
 Sign up at [reporead.com](https://www.reporead.com) and create an API key at [reporead.com/settings](https://www.reporead.com/settings). Keys use the `rrk_` prefix.
 
-### 2. Connect the MCP Server (Preferred)
+### 2. Set the Environment Variable
+
+```bash
+export REPOREAD_API_KEY="rrk_your_api_key_here"
+```
+
+Add to your shell profile (`~/.zshrc`, `~/.bashrc`) to persist across sessions.
+
+### 3. Verify Connection
+
+```bash
+bash {baseDir}/scripts/check-connection.sh
+```
+
+This confirms your API key is valid and shows your current token balance.
+
+### 4. Connect the MCP Server (Recommended)
 
 Add to your MCP configuration (e.g. `claude_desktop_config.json`, `.mcp.json`):
 
@@ -32,7 +60,11 @@ Add to your MCP configuration (e.g. `claude_desktop_config.json`, `.mcp.json`):
 }
 ```
 
-### MCP Tools
+Replace `rrk_your_api_key_here` with your actual API key.
+
+## MCP Tools
+
+When the MCP server is connected, these tools are available:
 
 | Tool | Description |
 |------|-------------|
@@ -45,23 +77,45 @@ Add to your MCP configuration (e.g. `claude_desktop_config.json`, `.mcp.json`):
 | `get_analysis_status(analysis_id)` | Lightweight status poll |
 | `get_token_balance()` | Check available tokens and tier |
 
-### 3. REST API Fallback
+## REST API Fallback
 
-For environments without MCP support, use the REST API directly.
+If the MCP server is not configured, use the REST API helper script:
+
+```bash
+# Check token balance
+bash {baseDir}/scripts/reporead-api.sh balance
+
+# Import a repository
+bash {baseDir}/scripts/reporead-api.sh import https://github.com/owner/repo
+
+# Start an analysis
+bash {baseDir}/scripts/reporead-api.sh analyze <repository_id> technical
+
+# Check analysis status
+bash {baseDir}/scripts/reporead-api.sh status <analysis_id>
+
+# Get full analysis results
+bash {baseDir}/scripts/reporead-api.sh results <analysis_id>
+
+# List repositories
+bash {baseDir}/scripts/reporead-api.sh repos
+```
+
+Or call the REST API directly:
 
 **Base URL:** `https://api.reporead.com/public/v1`
-**Auth:** `Authorization: Bearer rrk_your_api_key_here`
+**Auth:** `Authorization: Bearer $REPOREAD_API_KEY`
 
-| MCP Tool | REST Equivalent |
-|----------|----------------|
-| `import_repository` | `POST /repositories` `{"github_url": "..."}` |
-| `list_repositories` | `GET /repositories?page=1&per_page=20` |
-| `get_repository` | `GET /repositories/{id}` |
-| `start_analysis` | `POST /analyses` `{"repository_id": "...", "analysis_type": "..."}` |
-| `list_analyses` | `GET /analyses?repository_id=...&status=...` |
-| `get_analysis` | `GET /analyses/{id}` |
-| `get_analysis_status` | `GET /analyses/{id}/status` |
-| `get_token_balance` | `GET /tokens/balance` |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/repositories` | `POST` | Import repo `{"github_url": "..."}` |
+| `/repositories` | `GET` | List repos `?page=1&per_page=20` |
+| `/repositories/{id}` | `GET` | Get repo details |
+| `/analyses` | `POST` | Start analysis `{"repository_id": "...", "analysis_type": "..."}` |
+| `/analyses` | `GET` | List analyses `?repository_id=...&status=...` |
+| `/analyses/{id}` | `GET` | Get full results |
+| `/analyses/{id}/status` | `GET` | Lightweight status check |
+| `/tokens/balance` | `GET` | Check token balance |
 
 ---
 

@@ -41,7 +41,7 @@ For personal stats (`profile`, `top-artists`, `top-tracks`, `recent`, `np`, etc.
 ## All Commands
 
 ### User Profile
-- `profile` - Show user profile and stats.fm membership info
+- `profile` - Show username, pronouns, bio, Plus status, timezone, Spotify sync info
 
 ### Top Lists
 - `top-tracks` - Your most played tracks
@@ -54,21 +54,24 @@ For personal stats (`profile`, `top-artists`, `top-tracks`, `recent`, `np`, etc.
 - `recent` - Recently played tracks
 
 ### Detailed Stats
-- `artist-stats <artist_id>` - Detailed stats for specific artist (with monthly breakdown)
-- `track-stats <track_id>` - Detailed stats for specific track (with monthly breakdown)
-- `album-stats <album_id>` - Detailed stats for specific album (with monthly breakdown)
-- `stream-stats` - Overall streaming statistics
+- `artist-stats <artist_id>` - Your play count, listening time, and monthly breakdown for this artist
+- `track-stats <track_id>` - Your play count, listening time, and monthly breakdown for this track (shows track name + album)
+- `album-stats <album_id>` - Your play count, listening time, and monthly breakdown for this album
+- `stream-stats` - Your overall streaming summary (total streams, total time, avg track length, shortest/longest, unique counts for tracks/artists/albums)
 
 ### Lookups
+- `artist <artist_id>` - Artist info and discography. Shows genres, followers, popularity score (100 = very popular, 50 = underground, 0 = no data).
+  - `--type album|single|all` (default: all)
+  - `--limit N` - Items per section (default: 15)
 - `album <album_id>` - Album info and full tracklist (release date, label, genres, tracks with duration and [E] tags)
 - `artist-albums <artist_id>` - All albums/singles by artist, grouped by type (Albums, Singles & EPs, Compilations), newest first. Deduped by ID, 15 per section by default, shows "(N more)" overflow.
   - `--type album|single|all` (default: all)
   - `--limit N` - Items per section
 
 ### Drill-Down
-- `top-tracks-from-artist <artist_id>` - Top tracks from specific artist
-- `top-tracks-from-album <album_id>` - Top tracks from specific album
-- `top-albums-from-artist <artist_id>` - Top albums from specific artist
+- `top-tracks-from-artist <artist_id>` - Your most played tracks from this artist
+- `top-tracks-from-album <album_id>` - Your most played tracks from this album
+- `top-albums-from-artist <artist_id>` - Your most played albums from this artist
 
 ### Global Charts
 - `charts-top-tracks` - Global top tracks chart
@@ -76,7 +79,7 @@ For personal stats (`profile`, `top-artists`, `top-tracks`, `recent`, `np`, etc.
 - `charts-top-albums` - Global top albums chart
 
 ### Search
-- `search <query>` - Search for artists, tracks, or albums
+- `search <query>` - Search for artists, tracks, or albums. Use `--type artist|track|album` to filter results to one category
 
 ## Common Flags
 
@@ -84,10 +87,16 @@ For personal stats (`profile`, `top-artists`, `top-tracks`, `recent`, `np`, etc.
 All stats commands support both predefined ranges and custom dates:
 
 **Predefined ranges:**
-- `--range today` - Today only
-- `--range weeks` - Last 4 weeks (default)
-- `--range months` - Last 6 months
-- `--range lifetime` - All time
+- `--range today` or `--range 1d` - Today only
+- `--range 4w` - Last 4 weeks (default)
+- `--range 6m` - Last 6 months
+- `--range lifetime` or `--range all` - All time
+
+**Duration ranges** (resolved to custom timestamps):
+- `--range 7d` - Last 7 days
+- `--range 14d` - Last 14 days
+- `--range 30d` - Last 30 days
+- `--range 90d` - Last 90 days
 
 **Custom date ranges:**
 - `--start YYYY` - Start year (e.g., `--start 2025`)
@@ -106,6 +115,12 @@ All stats commands support both predefined ranges and custom dates:
 # Q1 2025
 ./statsfm.py artist-stats 39118 --start 2025-01-01 --end 2025-03-31
 ```
+
+### Granularity
+- `--granularity monthly` - Monthly breakdown (default)
+- `--granularity weekly` - Weekly breakdown (shows week number + start date)
+- `--granularity daily` - Daily breakdown (shows date + day name)
+- Works with `artist-stats`, `track-stats`, `album-stats`
 
 ### Other Flags
 - `--limit N` / `-l N` - Limit results (default: 15)
@@ -229,62 +244,57 @@ Then use the ID numbers in other commands.
 
 ## For AI Agents
 
-### Setup
+**Setup:** Check memory for a stats.fm username. If missing, ask. All personal data commands need `--user USERNAME`.
 
-Check your memory for a stored stats.fm username. If you don't have one, ask. Every command that touches user data needs `--user USERNAME`.
+**Core principle:** Connect data to meaning. They want insight, not tables. Show them patterns they didn't see.
 
-### What This Tool Is For
+**ALWAYS check multiple ranges.** Lifetime alone misses the story. Pull `--range today`, `7d`, `30d`, `4w`, `90d`, AND `lifetime` to see how taste is shifting. A current obsession invisible in lifetime stats is THE story. Same for genres and artists. One range = incomplete picture.
 
-This gives you direct access to someone's music listening history. That's personal. The value isn't in dumping tables of data — it's in showing someone something about themselves they didn't already know.
+### Query Patterns
 
-When someone asks about their music, they're not asking for a database query. They want to understand their own taste, revisit a memory, or discover a pattern. Your job is to connect the data to something meaningful.
+**"Tell me about [artist]"** → `search` → `artist-stats` (shows relationship timeline). Check first month in breakdown (when they discovered), recent months (still listening?). `top-tracks-from-artist` shows what stuck.
 
-### How to Think About It
+**"What's my taste like?"** → Pull MULTIPLE ranges: `top-artists --range 7d`, `--range 30d`, `--range 90d`, `--range lifetime`. Compare them. A lifetime #1 not in this month's top 20 is more interesting than the current #1. Same for `top-genres`. Check both artists AND genres - sometimes genre shifts while artists stay (or vice versa).
 
-**Someone mentions an artist:** They have a relationship with that artist. Find out what it looks like — how long they've been listening, what era they discovered them, which tracks stuck. `search` → `artist-stats` tells the story. `top-tracks-from-artist` shows what resonated. `artist-albums` gives context on the discography. Don't just list all three — read the first result and decide what's interesting before going deeper.
+**"What am I listening to?"** → `now-playing` for current track. `recent --limit 15` for session mood. Name patterns (same artist, genre clustering).
 
-**Someone asks about their taste:** They want a mirror, not a spreadsheet. `top-artists` and `top-genres` across different time ranges reveal how their taste is shifting. Compare `--range weeks` to `--range months` to `--range lifetime` — the differences are the story. A lifetime #1 that's not in the top 20 this month is more interesting than the current #1.
+**Album questions** → `album` for tracklist. `album-stats` for listening timeline. Monthly breakdown shows obsession vs slow burn.
 
-**Someone mentions an album:** They want to know about it or remember it. `album` gives the tracklist and metadata. If they also have listening data, `album-stats` shows when and how much they played it. Monthly breakdowns reveal whether it was a one-week obsession or a slow burn.
+### Time Translations
 
-**Someone asks what they're listening to:** `now-playing` is the literal answer. But `recent` with the last 10-15 tracks shows the session's mood. If there's a pattern (same artist, same genre), name it.
-
-### Date Ranges
-
-When the user says a time period, translate it:
 - "This year" → `--start 2025 --end 2026`
-- "Last summer" → `--start 2025-06 --end 2025-09`
-- "When did I start listening to X" → `artist-stats <id>` with `--range lifetime` — the monthly breakdown shows the first month
+- "Last summer" → `--start 2025-06 --end 2025-09`  
+- "When did I discover X" → `artist-stats <id> --range lifetime` (first month in breakdown)
 
-### Reading the Data
+### Pattern Recognition
 
-The numbers tell stories. Look for these:
+- **200+ plays in one month** = obsession period
+- **First appearance** = discovery moment (check if album dropped that month)
+- **Sudden drop** = displacement (new obsession or just moved on)
+- **Old track in recent plays** = nostalgia/rediscovery
+- **One track 5x the next** = their song (repeat anthem)
 
-- **A month with 200+ plays** — that artist owned their life for a while. Say so.
-- **First appearance in monthly breakdown** — that's when they discovered the artist. Context: was an album released that month?
-- **Sudden drop after months of plays** — something changed. New obsession displaced it, or they moved on.
-- **Old tracks in recent plays** — nostalgia trip or rediscovery. Worth noting.
-- **One track with 5x the plays of the next** — that's their song. The one they put on repeat.
-
-Don't just report numbers. "You played 847 tracks" means nothing. "You listened to Madison Beer for 30 hours in March — that's almost an hour a day" means something.
+Context beats raw numbers: "30 hours in March = ~1hr/day" not "1,847 plays."
 
 ### Command Reference
 
 | Intent | Command | Key flags |
 |--------|---------|-----------|
-| Play count for a track | `track-stats <id>` | `--start/--end`, `--granularity` |
-| Play count for an artist | `artist-stats <id>` | `--start/--end`, `--granularity` |
-| Rankings | `top-tracks`, `top-artists`, `top-albums`, `top-genres` | `--range`, `--start/--end`, `--limit` |
+| Your plays of a track | `track-stats <id>` | `--start/--end`, `--granularity` |
+| Your plays of an artist | `artist-stats <id>` | `--start/--end`, `--granularity` |
+| Your plays of an album | `album-stats <id>` | `--start/--end`, `--granularity` |
+| Your overall stats | `stream-stats` | `--range`, `--start/--end` |
+| Your rankings | `top-tracks`, `top-artists`, `top-albums`, `top-genres` | `--range`, `--start/--end`, `--limit` |
 | Currently playing | `now-playing` | | 
 | Recent tracks | `recent` | `--limit` |
+| Artist overview | `artist <id>` | `--limit` |
 | Artist's discography | `artist-albums <id>` | `--limit` |
 | Album tracklist | `album <id>` | |
-| Top tracks by artist | `top-tracks-from-artist <id>` | `--range`, `--limit` |
-| Top tracks on album | `top-tracks-from-album <id>` | `--range`, `--limit` |
-| Top albums by artist | `top-albums-from-artist <id>` | `--range`, `--limit` |
+| Your top tracks by artist | `top-tracks-from-artist <id>` | `--range`, `--limit` |
+| Your top tracks on album | `top-tracks-from-album <id>` | `--range`, `--limit` |
+| Your top albums by artist | `top-albums-from-artist <id>` | `--range`, `--limit` |
 | Global charts | `charts-top-tracks`, `charts-top-artists`, `charts-top-albums` | `--range`, `--limit` |
 | Find IDs | `search <query>` | `--type artist\|track\|album` |
-| Overall stats | `stream-stats` | `--range`, `--start/--end` |
 
 ### Edge Cases
 

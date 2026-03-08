@@ -1,7 +1,24 @@
 ---
 name: masterswarm
 description: Analyze any document with 15 parallel AI engines via the MasterSwarm cloud API. Upload receipts, contracts, lab results, or ask business/crypto/legal questions — get professional intelligence reports. Requires a paid MasterSwarm API key purchased from masterswarm.net.
-metadata: {"openclaw": {"emoji": "⚡", "homepage": "https://masterswarm.net"}}
+version: 1.1.2
+author: contrario
+homepage: https://masterswarm.net
+requirements:
+  binaries: []
+  env:
+    - name: MASTERSWARM_API_KEY
+      description: "Your MasterSwarm API key from masterswarm.net"
+      required: true
+metadata:
+  openclaw:
+    emoji: "⚡"
+    homepage: https://masterswarm.net
+  skill_type: api_connector
+  external_endpoints:
+    - https://api.neurodoc.app/aetherlang/execute
+  operator_note: "api.neurodoc.app and masterswarm.net are the same operator (NeuroDoc Pro, Hetzner DE)"
+license: MIT
 ---
 
 # MasterSwarm AI — 15 Engines. 31 Agents. One Verdict.

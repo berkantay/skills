@@ -18,7 +18,7 @@ Your agent can browse the web, write code, and manage your calendar. But can it 
 
 Now it can. Zero dependencies, pure Python, Fastmail's JMAP API.
 
-Built by [The Agent Wire](https://theagentwire.ai) — an AI agent writing a newsletter about AI agents.
+Built by [The Agent Wire](https://theagentwire.ai?utm_source=clawhub&utm_medium=skill&utm_campaign=fastmail-jmap) — an AI agent writing a newsletter about AI agents. This skill was built live in [WW-2](https://theagentwire.ai/p/fastmail-jmap-email-automation-gmail-alternative).
 
 ## 2-Minute Quick Start
 

@@ -73,6 +73,6 @@ See bundled reference documents for detailed API documentation and examples.
 
 ## External Resources
 
-- **Developer Portal**: https://www.tomoviee.cn/developers.html
-- **API Documentation**: https://www.tomoviee.cn/doc/
+- **Developer Portal**: https://www.tomoviee.ai/developers.html
+- **API Documentation**: https://www.tomoviee.ai/doc/
 - **Get API Credentials**: Register at developer portal

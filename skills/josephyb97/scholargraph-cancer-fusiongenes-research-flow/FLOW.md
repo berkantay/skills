@@ -2,7 +2,7 @@
 
 ## 流程概述
 
-全流程使用 **ScholarGraph v1.4 skill** 进行：
+全流程使用 **ScholarGraph v1.4 及以上版本 skill** 进行：
 
 ```
 第一轮搜索: 各癌种融合基因 review

@@ -1,0 +1,11 @@
+{
+  "owner": "spyfree",
+  "slug": "us-stock-radar",
+  "displayName": "US Stock Radar",
+  "latest": {
+    "version": "0.1.1",
+    "publishedAt": 1773066213493,
+    "commit": null
+  },
+  "history": []
+}

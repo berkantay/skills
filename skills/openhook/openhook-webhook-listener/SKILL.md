@@ -63,8 +63,29 @@ openhook subscribe linear --team TEAM_ID --events issue.created,issue.updated
 # List subscriptions
 openhook list
 
-# Start listening
+# Start as background daemon (recommended)
+openhook daemon start --openclaw
+
+# Or run in foreground
 openhook listen
+```
+
+## Daemon Mode (Recommended)
+
+Run openhook as a background service that starts automatically and reconnects if disconnected:
+
+```bash
+# Start daemon
+openhook daemon start --openclaw
+
+# Check status
+openhook daemon status
+
+# View logs
+openhook daemon logs -f
+
+# Stop daemon
+openhook daemon stop
 ```
 
 ## Usage with OpenClaw (Native Support)

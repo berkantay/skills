@@ -1,10 +1,11 @@
 ---
 name: Network-AI
-description: Multi-agent swarm orchestration for complex workflows. Coordinates multiple agents, decomposes tasks, manages shared state via a local blackboard file, and enforces permission walls before sensitive operations. All execution is local and sandboxed.
+description: "Python orchestration skill: local multi-agent workflows via blackboard file, permission gating, and token budget scripts. All execution is local — no network calls, no Node.js required. TypeScript/Node.js features (HMAC tokens, AES-256, MCP server, 14 adapters, CLI) are in the SEPARATE companion npm package (npm install -g network-ai) and are NOT part of this skill bundle."
 metadata:
   openclaw:
     emoji: "\U0001F41D"
     homepage: https://github.com/jovanSAPFIONEER/Network-AI
+    bundle_scope: "Python scripts only (scripts/*.py). The README.md in this repo describes the FULL project including the companion Node.js npm package — features documented there (HMAC tokens, AES-256 encryption, MCP server, 14 adapters, CLI) are NOT implemented in these Python scripts and are NOT part of this ClawHub skill. Install the npm package separately for those features."
     requires:
       bins:
         - python3
@@ -210,6 +211,34 @@ python {baseDir}/scripts/blackboard.py read "task:q4_analysis"
 # List all entries
 python {baseDir}/scripts/blackboard.py list
 ```
+
+### 5. Use the Node.js CLI (optional — requires `npm install -g network-ai`)
+
+The CLI gives direct terminal access to all four subsystems without running a server:
+
+```bash
+# Blackboard
+network-ai bb get task:q4_analysis
+network-ai bb set task:q4_analysis '{"status": "complete"}' --agent orchestrator
+network-ai bb list
+network-ai bb snapshot
+
+# Permissions
+network-ai auth token data_analyst --resource DATABASE --action read \
+  --justification "Need Q4 invoices for revenue report"
+network-ai auth check grant_a1b2c3...
+network-ai auth revoke grant_a1b2c3...
+
+# Budget
+network-ai budget status
+network-ai budget set-ceiling 50000
+
+# Audit log
+network-ai audit log --limit 50
+network-ai audit tail          # live-stream as events arrive
+```
+
+Global flags: `--data <path>` (override data directory) · `--json` (machine-readable output)
 
 ## Agent-to-Agent Handoff Protocol
 
@@ -597,3 +626,4 @@ python {baseDir}/scripts/swarm_guard.py supervisor-review --task-id "task_001"
 - [AuthGuardian Details](references/auth-guardian.md) - Full permission system documentation
 - [Blackboard Schema](references/blackboard-schema.md) - Data structure specifications
 - [Agent Trust Levels](references/trust-levels.md) - How trust is calculated
+- [CLI Reference](QUICKSTART.md) - Full `network-ai` CLI command reference (§ 10. CLI)

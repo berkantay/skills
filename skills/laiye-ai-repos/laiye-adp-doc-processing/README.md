@@ -4,9 +4,6 @@
 
 **ADP (Agentic Document Processing)** is a next-generation platform based on Large Language Models and Vision Language Models, combined with agentic technology, to achieve end-to-end automated document processing.
 
-
-[English](README.md) | [简体中文](README-CN.md)
-
 </div>
 
 ---
@@ -109,7 +106,7 @@ ADP Skill can be installed on any AI agent platform that supports custom skills:
 
 3. **Configure Credentials**
    ```bash
-   # Get your API keys from: https://adp-global.laiye.com/?utm_source=github
+   # Get your API keys from: https://adp-global.laiye.com/?utm_source=clawhub
    export ADP_ACCESS_KEY="your_access_key_here"
    export ADP_APP_KEY="your_app_key_here"
    export ADP_APP_SECRET="your_app_secret_here"
@@ -194,7 +191,7 @@ laiye-doc-processing/
 
 ### Getting Your Credentials
 
-1. Visit [ADP Portal](https://adp-global.laiye.com/?utm_source=github)
+1. Visit [ADP Portal](https://adp-global.laiye.com/?utm_source=clawhub)
 2. Register for a new account (100 free credits/month for new users)
 3. Use out-of-the-box application API directly, or create a new custom application to get `APP_KEY`, `APP_SECRET`, and `ACCESS_KEY`
 

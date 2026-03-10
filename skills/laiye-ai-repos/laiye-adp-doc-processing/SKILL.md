@@ -6,9 +6,9 @@ License: Commercial license required. New users receive 100 free credits monthly
 
 # Laiye Agentic Document Processing (ADP)
 
-Agentic Document Processing API — convert 10+ file formats（.jpeg,.jpg,.png,.bmp,.tiff,.pdf,.doc,.docx,.xls,.xlsx） to structured JSON/Excel with per-field confidence scores using VLM and LLM.
+Agentic Document Processing API — convert 10+ file formats (.jpeg, .jpg, .png, .bmp, .tiff, .pdf, .doc, .docx, .xls, .xlsx) to structured JSON/Excel with per-field confidence scores using VLM and LLM.
 
-> **Base URL:** `https://adp-global.laiye.com/?utm_source=github`
+> **Base URL:** `https://adp-global.laiye.com/?utm_source=clawhub`
 
 ## Quick Start
 
@@ -278,7 +278,7 @@ Extracts: order_number, order_date, buyer_name/seller_name, address, total_amoun
 
 ### Data Handling
 
-**Important:** Documents uploaded to ADP are transmitted to `https://adp-global.laiye.com/?utm_source=github` and processed on external servers.
+**Important:** Documents uploaded to ADP are transmitted to `https://adp-global.laiye.com/?utm_source=clawhub` and processed on external servers.
 
 **Before uploading sensitive documents:**
 - Review ADP privacy policy and data retention policies
@@ -342,8 +342,5 @@ Before publishing or updating this skill, verify:
 - [ ] File permission guidance is included for config files
 
 ## References
-
-- **API Base URL:** https://adp-global.laiye.com/
-- **Flow Documentation:** [ADP Flow Index](../../refers/backend/flows/ADP-Flow-Index.md)
-- **Extraction Flow:** [Document Extraction Flow](../../refers/backend/flows/09-Doc-Extraction-Flow.md)
-- **Recognition Flow:** [Document Recognition Flow](../../refers/backend/flows/08-Doc-Recognition-Flow.md)
+- **ADP Product Manual:** [ADP Product Manual (SaaS)](https://laiye-tech.feishu.cn/wiki/OfexwgVUQiOpEek4kO7c7NEJnAe)
+- **ADP API Documentation:** [Open API User Guide](https://laiye-tech.feishu.cn/wiki/S1t2wYR04ivndKkMDxxcp2SFnKd)
